@@ -154,6 +154,17 @@ class AnalyticsManager {
         console.log(JSON.stringify(payload, null, 2));
         console.log('════════════════════════════════════════');
 
+        // Add canonical bestXp field with cross-session persistence
+        const _xpCurO = (payload.levels || []).reduce((s, l) => s + (l.xp_earned || 0), 0);
+        const _gIdO = (payload.session && payload.session.game_name) || '';
+        payload.gameId = _gIdO;
+        payload.xpEarnedTotal = _xpCurO;
+        payload.xpEarned = _xpCurO;
+        payload.xpTotal = _xpCurO;
+        const _bKeyO = 'bestXp_' + _gIdO;
+        let _bPrevO = 0; try { _bPrevO = parseInt(localStorage.getItem(_bKeyO) || '0', 10) || 0; } catch (_e) {}
+        payload.bestXp = Math.max(_xpCurO, _bPrevO);
+        if (_xpCurO > _bPrevO) { try { localStorage.setItem(_bKeyO, String(_xpCurO)); } catch (_e) {} }
         const payloadString = JSON.stringify(payload);
         let sent = false;
 
